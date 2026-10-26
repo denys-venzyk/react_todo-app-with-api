@@ -117,6 +117,16 @@ export const App: React.FC = () => {
       );
   }
 
+  function handleAllTodosStatusChange() {
+    const newStatus = todos.some(todo => !todo.completed);
+
+    const activeTodos = todos.filter(todo => todo.completed !== newStatus);
+
+    activeTodos.forEach(activeTodo =>
+      handleTodoStatusChange(activeTodo.id, newStatus),
+    );
+  }
+
   if (!USER_ID) {
     return <UserWarning />;
   }
@@ -133,6 +143,7 @@ export const App: React.FC = () => {
           inputFocusRef={inputRef}
           onFormSubmit={handleFormSubmit}
           isTempTodo={tempTodo !== null}
+          onAllTodosStatusChange={handleAllTodosStatusChange}
         />
         {(todos.length > 0 || tempTodo !== null) && (
           <>

@@ -9,6 +9,7 @@ type Props = {
   inputFocusRef: React.RefObject<HTMLInputElement>;
   onFormSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
   isTempTodo: boolean;
+  onAllTodosStatusChange: () => void;
 };
 
 export const Header: React.FC<Props> = ({
@@ -18,6 +19,7 @@ export const Header: React.FC<Props> = ({
   inputFocusRef,
   onFormSubmit,
   isTempTodo,
+  onAllTodosStatusChange,
 }) => {
   const areAllTodosCompleted = todos.every(todo => todo.completed);
 
@@ -30,6 +32,7 @@ export const Header: React.FC<Props> = ({
             active: areAllTodosCompleted,
           })}
           data-cy="ToggleAllButton"
+          onClick={onAllTodosStatusChange}
         />
       )}
 
