@@ -24,7 +24,6 @@ export const App: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState<ErrorMessage>(
     ErrorMessage.noError,
   );
-
   const [tempTodo, setTempTodo] = useState<Todo | null>(null);
   const [processedIds, setProcessedIds] = useState<number[]>([]);
   const [title, setTitle] = useState('');
@@ -53,15 +52,19 @@ export const App: React.FC = () => {
   }
 
   const visibleTodos = getVisibleTodos();
+  const trimmedTitle = title.trim();
 
   function handleTodoDelete(id: number) {
     setProcessedIds(prev => [...prev, id]);
 
-    deleteTodo(id)
+    return deleteTodo(id)
       .then(() =>
         setTodos(prevTodos => prevTodos.filter(prevTodo => prevTodo.id !== id)),
       )
-      .catch(() => setErrorMessage(ErrorMessage.unableToDelete))
+      .catch(error => {
+        setErrorMessage(ErrorMessage.unableToDelete);
+        throw error;
+      })
       .finally(() =>
         setProcessedIds(prevIds => prevIds.filter(prevId => prevId !== id)),
       );
@@ -75,7 +78,6 @@ export const App: React.FC = () => {
 
   function handleFormSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const trimmedTitle = title.trim();
 
     if (!trimmedTitle) {
       setErrorMessage(ErrorMessage.titleEmpty);
@@ -127,6 +129,37 @@ export const App: React.FC = () => {
     );
   }
 
+  function handleEditFormSubmit(id: number, newTitle: string) {
+    const trimmedNewTitle = newTitle.trim();
+    const currentTodo = todos.find(todo => todo.id === id);
+
+    if (!trimmedNewTitle) {
+      return handleTodoDelete(id);
+    }
+
+    if (currentTodo && trimmedNewTitle === currentTodo.title) {
+      return Promise.resolve();
+    }
+
+    setProcessedIds(prev => [...prev, id]);
+
+    return updateTodo({ id, title: trimmedNewTitle })
+      .then(newTodo =>
+        setTodos(prevTodos =>
+          prevTodos.map(prevTodo =>
+            prevTodo.id === newTodo.id ? newTodo : prevTodo,
+          ),
+        ),
+      )
+      .catch(error => {
+        setErrorMessage(ErrorMessage.unableToUpdate);
+        throw error;
+      })
+      .finally(() => {
+        setProcessedIds(prevIds => prevIds.filter(prevId => prevId !== id));
+      });
+  }
+
   if (!USER_ID) {
     return <UserWarning />;
   }
@@ -153,6 +186,8 @@ export const App: React.FC = () => {
               processedIds={processedIds}
               onDelete={handleTodoDelete}
               onStatusChange={handleTodoStatusChange}
+              title={title}
+              onUpdate={handleEditFormSubmit}
             />
             <Footer
               todos={todos}

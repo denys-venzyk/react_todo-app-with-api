@@ -9,6 +9,7 @@ type Props = {
   isProcessed: boolean;
   onDelete: (id: number) => void;
   onStatusChange: (id: number, completed: boolean) => void;
+  onUpdate: (id: number, newTitle: string) => Promise<void>;
 };
 
 export const TodoItem: React.FC<Props> = ({
@@ -16,8 +17,34 @@ export const TodoItem: React.FC<Props> = ({
   isProcessed,
   onDelete,
   onStatusChange,
+  onUpdate,
 }) => {
   const [isBeingEdited, setIsBeingEdited] = useState(false);
+  const [tempTitle, setTempTitle] = useState(todo.title);
+
+  function handleKeyUp(event: React.KeyboardEvent<HTMLInputElement>) {
+    if (event.key === 'Escape') {
+      setIsBeingEdited(false);
+      setTempTitle(todo.title);
+    }
+  }
+
+  const handleSave = () => {
+    const trimmedNewTitle = tempTitle.trim();
+
+    if (trimmedNewTitle === todo.title) {
+      setIsBeingEdited(false);
+
+      return;
+    }
+
+    onUpdate(todo.id, trimmedNewTitle).then(() => setIsBeingEdited(false));
+  };
+
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    handleSave();
+  };
 
   return (
     <div data-cy="Todo" className={cn('todo', { completed: todo.completed })}>
@@ -33,13 +60,17 @@ export const TodoItem: React.FC<Props> = ({
       </label>
 
       {isBeingEdited ? (
-        <form>
+        <form onSubmit={handleSubmit}>
           <input
             data-cy="TodoTitleField"
             type="text"
             className="todo__title-field"
             placeholder="Empty todo will be deleted"
-            value="Todo is being edited now"
+            value={tempTitle}
+            onChange={event => setTempTitle(event.target.value)}
+            onKeyUp={handleKeyUp}
+            autoFocus
+            onBlur={handleSave}
           />
         </form>
       ) : (

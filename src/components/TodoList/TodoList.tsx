@@ -8,6 +8,8 @@ type Props = {
   processedIds: number[];
   onDelete: (id: number) => void;
   onStatusChange: (id: number, completed: boolean) => void;
+  title: string;
+  onUpdate: (id: number, newTitle: string) => Promise<void>;
 };
 
 export const TodoList: React.FC<Props> = ({
@@ -16,6 +18,7 @@ export const TodoList: React.FC<Props> = ({
   processedIds,
   onDelete,
   onStatusChange,
+  onUpdate,
 }) => {
   return (
     <section className="todoapp__main" data-cy="TodoList">
@@ -26,6 +29,7 @@ export const TodoList: React.FC<Props> = ({
           isProcessed={processedIds.includes(todo.id)}
           onDelete={onDelete}
           onStatusChange={onStatusChange}
+          onUpdate={onUpdate}
         />
       ))}
 
@@ -35,6 +39,7 @@ export const TodoList: React.FC<Props> = ({
           isProcessed
           onDelete={onDelete}
           onStatusChange={onStatusChange}
+          onUpdate={onUpdate}
         />
       )}
     </section>
